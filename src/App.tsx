@@ -1,26 +1,47 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { FunctionComponent, useEffect, useState } from "react";
+import { Map } from "./components/Map";
+import { Grid, Box, Typography } from "@material-ui/core";
+import "./app.css";
+import { ResponseSummary, Global, Countries, Country } from "./types/responses";
 
-function App() {
+export const App: FunctionComponent = () => {
+  const [countries, setCountries] = useState<Countries | null>(null);
+  const [country, setCountry] = useState<Country | null | undefined>(null);
+  const [summary, setSummary] = useState<Global | null>(null);
+
+  const handleCountryClick = (id: string) => {
+    let ctry = countries?.find((el) => el.CountryCode === id);
+    setCountry(ctry);
+  };
+
+  useEffect(() => {
+    fetch("https://api.covid19api.com/summary")
+      .then((data) => data.json())
+      .then((response: ResponseSummary) => {
+        setSummary(response.Global);
+        setCountries(response.Countries);
+      });
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Box width="100%" height="100vh">
+      <Grid container style={{ height: "100vh" }}>
+        <Grid item container md={4}>
+          <Grid item md={12}>
+            <Box bgcolor="orange" width="100%" height="100%">
+              <Typography>{summary && JSON.stringify(summary)}</Typography>
+            </Box>
+          </Grid>
+          <Grid item md={12}>
+            <Box bgcolor="pink" width="100%" height="100%">
+              <Typography>{country && JSON.stringify(country)}</Typography>
+            </Box>
+          </Grid>
+        </Grid>
+        <Grid item md={8} style={{ marginTop: "auto", marginBottom: "auto" }}>
+          <Map onCountryClick={handleCountryClick} />
+        </Grid>
+      </Grid>
+    </Box>
   );
-}
-
-export default App;
+};
